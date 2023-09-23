@@ -2,45 +2,11 @@
 #include <numeric>
 #include <unordered_set>
 #include <vector>
-/********************
-* DFS CC
-********************/
-auto dfs_cc(const std::vector<int>& rowPtr, const std::vector<int>& colIdx)
-{
-  const auto                    numVertices = rowPtr.size() - 1;
-  std::vector<bool>             visited(numVertices, false);
-  std::vector<std::vector<int>> connectedComponents;
-
-  std::function<void(int, std::vector<int>&)> dfs =
-      [&dfs, &rowPtr, &colIdx, &visited](int root, std::vector<int>& component) {
-        visited[root] = true;
-        component.push_back(root);
-        for(int i = rowPtr[root]; i < rowPtr[root + 1]; i++)
-        {
-          auto next = colIdx[i];
-          if(visited[next] == false)
-          {
-            dfs(next, component);    // propagate the component vector
-          }
-        }
-      };
-
-  for(int i = 0; i < numVertices; i++)
-  {
-    if(visited[i] == false)
-    {
-      std::vector<int> component;
-      dfs(i, component);
-      connectedComponents.push_back(component);
-    }
-  }
-  return connectedComponents;
-}
 
 /********************
 * DFS + Label Propagation
 ********************/
-auto afforest(const std::vector<int>& rowPtr, const std::vector<int>& colIdx)
+auto dfs_cc(const std::vector<int>& rowPtr, const std::vector<int>& colIdx)
 {
   int              labelCount  = 0;
   const auto       numVertices = rowPtr.size() - 1;
@@ -127,10 +93,6 @@ auto union_find(const std::vector<int>& rowPtr, const std::vector<int>& colIdx)
     }
   }
 
-  for(int i = 0; i < numVertices; ++i)
-  {
-    parent[i] = find(i);
-  }
   return parent;
 }
 
@@ -185,22 +147,9 @@ int main()
   //////////
   // dfs //
   /////////
-  auto cc = dfs_cc(rowPtr, colIdx);
 
-  std::cout << "DFS: ";
-  int count = 0;
-  for(auto& component : cc)
-  {
-    std::cout << "Group " << ++count << ": [ ";
-    for(auto& vertex : component)
-    {
-      std::cout << vertex << ' ';
-    }
-    std::cout << "] ";
-  }
-
-  auto label = afforest(rowPtr, colIdx);
-  std::cout << "\n\nLabels of Afforest: ";
+  auto label = dfs_cc(rowPtr, colIdx);
+  std::cout << "Labels of dfs_cc: ";
   for(auto& l : label)
   {
     std::cout << l << ' ';
