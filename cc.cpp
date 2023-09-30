@@ -6,17 +6,17 @@
 /********************
 * DFS + Label Propagation
 ********************/
-auto dfs_cc(const std::vector<int>& rowPtr, const std::vector<int>& colIdx)
+auto dfs_cc(const std::vector<int>& row_pointer, const std::vector<int>& column_index)
 {
   int              labelCount  = 0;
-  const auto       numVertices = rowPtr.size() - 1;
-  std::vector<int> label(numVertices, -1);
+  const auto       num_nodes = row_pointer.size() - 1;
+  std::vector<int> label(num_nodes, -1);
 
-  std::function<void(int)> dfs = [&dfs, &rowPtr, &colIdx, &label](int curr) {
+  std::function<void(int)> dfs = [&dfs, &row_pointer, &column_index, &label](int curr) {
     auto currentLabel = label[curr];
-    for(auto i = rowPtr[curr]; i < rowPtr[curr + 1]; i++)
+    for(auto i = row_pointer[curr]; i < row_pointer[curr + 1]; i++)
     {
-      auto next = colIdx[i];
+      auto next = column_index[i];
       if(label[next] == -1)
       {
         label[next] = currentLabel;
@@ -25,7 +25,7 @@ auto dfs_cc(const std::vector<int>& rowPtr, const std::vector<int>& colIdx)
     }
   };
 
-  for(int i = 0; i < numVertices; i++)
+  for(int i = 0; i < num_nodes; i++)
   {
     if(label[i] == -1)
     {
@@ -38,11 +38,11 @@ auto dfs_cc(const std::vector<int>& rowPtr, const std::vector<int>& colIdx)
 /********************
 * Union-Find CC
 ********************/
-auto union_find(const std::vector<int>& rowPtr, const std::vector<int>& colIdx)
+auto union_find(const std::vector<int>& row_pointer, const std::vector<int>& column_index)
 {
-  const auto       numVertices = rowPtr.size() - 1;
-  std::vector<int> parent(numVertices);
-  std::vector<int> rank(numVertices);    // keep tree relatively balanced
+  const auto       num_nodes = row_pointer.size() - 1;
+  std::vector<int> parent(num_nodes);
+  std::vector<int> rank(num_nodes);    // keep tree relatively balanced
   std::iota(parent.begin(), parent.end(), 0);
   //! Find
   // the resurive find function is not very clever
@@ -85,24 +85,23 @@ auto union_find(const std::vector<int>& rowPtr, const std::vector<int>& colIdx)
     }
   };
 
-  for(int i = 0; i < numVertices; i++)
+  for(int i = 0; i < num_nodes; i++)
   {
-    for(auto j = rowPtr[i]; j < rowPtr[i + 1]; j++)
+    for(auto j = row_pointer[i]; j < row_pointer[i + 1]; j++)
     {
-      unite(i, colIdx[j]);
+      unite(i, column_index[j]);
     }
   }
-
   return parent;
 }
 
 /********************
 * Shiloach-Vishkin CC
 ********************/
-auto shiloach_vishkin(const std::vector<int>& rowPtr, const std::vector<int>& colIdx)
+auto shiloach_vishkin(const std::vector<int>& row_pointer, const std::vector<int>& column_index)
 {
-  const auto       numVertices = rowPtr.size() - 1;
-  std::vector<int> parent(numVertices);    // same as parent
+  const auto       num_nodes = row_pointer.size() - 1;
+  std::vector<int> parent(num_nodes);    // same as parent
   std::iota(parent.begin(), parent.end(), 0);
 
   bool update = true;
@@ -111,12 +110,12 @@ auto shiloach_vishkin(const std::vector<int>& rowPtr, const std::vector<int>& co
     update = false;
     //? Hooking Phase
     //! allowing for parallelism
-    for(int i = 0; i < numVertices; i++)
+    for(int i = 0; i < num_nodes; i++)
     {
       auto curr_parent = parent[i];
-      for(auto j = rowPtr[i]; j < rowPtr[i + 1]; j++)
+      for(auto j = row_pointer[i]; j < row_pointer[i + 1]; j++)
       {
-        auto next = colIdx[j];
+        auto next = column_index[j];
         // lower component ID wins independent of direction
         if(parent[next] > curr_parent)
         {
@@ -127,7 +126,7 @@ auto shiloach_vishkin(const std::vector<int>& rowPtr, const std::vector<int>& co
     }
     //? Shortcutting / Compressing / Jumping Phase
     //! allowing for parallelism
-    for(int i = 0; i < numVertices; i++)
+    for(int i = 0; i < num_nodes; i++)
     {
       while(parent[i] != parent[parent[i]])
       {
@@ -142,27 +141,27 @@ auto shiloach_vishkin(const std::vector<int>& rowPtr, const std::vector<int>& co
 int main()
 {
 
-  std::vector<int> rowPtr = { 0, 1, 2, 3, 4, 5, 6 };
-  std::vector<int> colIdx = { 1, 2, 0, 4, 5, 3 };
+  std::vector<int> row_pointer = { 0, 1, 2, 3, 4, 5, 6 };
+  std::vector<int> column_index = { 1, 2, 0, 4, 5, 3 };
   //////////
   // dfs //
   /////////
 
-  auto label = dfs_cc(rowPtr, colIdx);
+  auto label = dfs_cc(row_pointer, column_index);
   std::cout << "Labels of dfs_cc: ";
   for(auto& l : label)
   {
     std::cout << l << ' ';
   }
 
-  label = union_find(rowPtr, colIdx);
+  label = union_find(row_pointer, column_index);
   std::cout << "\n\nLabels of Union Find: ";
   for(auto& l : label)
   {
     std::cout << l << ' ';
   }
 
-  label = shiloach_vishkin(rowPtr, colIdx);
+  label = shiloach_vishkin(row_pointer, column_index);
   std::cout << "\n\nLabels of Shiloach Vishkin: ";
   for(auto& l : label)
   {

@@ -5,7 +5,7 @@
 #include <queue>
 #include <stack>
 
-std::stack<int> BFS(const int root, const int target, const std::vector<int>& rowPtr, const std::vector<int>& colIdx) {
+std::stack<int> BFS(const int root, const int target, const std::vector<int>& row_pointer, const std::vector<int>& column_index) {
    
     std::unordered_map<int, int> parent;
     std::unordered_set<int> visited;
@@ -25,8 +25,8 @@ std::stack<int> BFS(const int root, const int target, const std::vector<int>& ro
             break;
         }
 
-        for(int i = rowPtr[curr]; i < rowPtr[curr+1]; i++) {
-            auto next = colIdx[i];
+        for(int i = row_pointer[curr]; i < row_pointer[curr+1]; i++) {
+            auto next = column_index[i];
             if(visited.count(next) == 0)
             {   
                 nodeQue.push(next);
@@ -48,7 +48,7 @@ std::stack<int> BFS(const int root, const int target, const std::vector<int>& ro
     return path;
 }
 
-void DFS(const int root, const int target, std::vector<int>& path, std::vector<bool>& visited, const std::vector<int>& rowPtr, const std::vector<int>& colIdx) {
+void DFS(const int root, const int target, std::vector<int>& path, std::vector<bool>& visited, const std::vector<int>& row_pointer, const std::vector<int>& column_index) {
    visited[root] = true;
    path.push_back(root);
 
@@ -59,10 +59,10 @@ void DFS(const int root, const int target, std::vector<int>& path, std::vector<b
     }
     std::cout << '\n';
    }    
-   for(int i = rowPtr[root]; i < rowPtr[root+1]; i++) {
-      int next = colIdx[i];
+   for(int i = row_pointer[root]; i < row_pointer[root+1]; i++) {
+      int next = column_index[i];
       if( visited[next] == false ) {
-        DFS(next, target, path, visited, rowPtr, colIdx);
+        DFS(next, target, path, visited, row_pointer, column_index);
       }
     }
 }

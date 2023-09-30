@@ -3,44 +3,44 @@
 #include <stack>
 #include <vector>
 
-auto brandes(const std::vector<int>& rowPtr, const std::vector<int>& colIdx)
+auto Brandes(const std::vector<int>& row_pointer, const std::vector<int>& column_index)
 {
-  const auto         numVertices = rowPtr.size() - 1;
-  std::vector<float> betweenness(numVertices, 0.0f);
+  const auto         num_nodes = row_pointer.size() - 1;
+  std::vector<float> betweenness(num_nodes, 0.0f);
   //For each vertex s, perform a BFS to establish levels and parents
   //! The time complexity is O(V(V+E) + V*V) = O(V*E)
-  for(int i = 0; i < numVertices; i++)
+  for(int i = 0; i < num_nodes; i++)
   {
-    std::vector<int>   distance(numVertices, -1);      // Initialize distance from s
-    std::vector<int>   pathCount(numVertices, 0);      // Initialize path count
-    std::vector<float> DepScore(numVertices, 0.0f);    // Dependency score for each vertex
-    std::queue<int>    pathQueue;                      // BFS order
-    std::stack<int>    pathStack;                      // reverse BFS order
-    std::vector<std::vector<int>> parent(numVertices);
+    std::vector<int>   distance(num_nodes, -1);      // Initialize distance from s
+    std::vector<int>   path_count(num_nodes, 0);      // Initialize path count
+    std::vector<float> score(num_nodes, 0.0f);    // Dependency score for each vertex
+    std::queue<int>    path_queue;                      // BFS order
+    std::stack<int>    path_stack;                      // reverse BFS order
+    std::vector<std::vector<int>> parent(num_nodes);
 
     distance[i]  = 0;
-    pathCount[i] = 1;
-    pathQueue.push(i);
+    path_count[i] = 1;
+    path_queue.push(i);
     // BFS traversal
     // for a single source vertex, the time complexity is O(V+E),
     //! so the overall time complexity is O(V+E) for each vertex i
-    while(!pathQueue.empty())
+    while(!path_queue.empty())
     {
-      const auto source = pathQueue.front();
-      pathQueue.pop();
-      pathStack.push(source);
-      for(auto i = rowPtr[source]; i < rowPtr[source + 1]; i++)
+      const auto source = path_queue.front();
+      path_queue.pop();
+      path_stack.push(source);
+      for(auto i = row_pointer[source]; i < row_pointer[source + 1]; i++)
       {
-        const auto target = colIdx[i];
+        const auto target = column_index[i];
         if(distance[target] < 0)
         {
-          pathQueue.push(target);
+          path_queue.push(target);
           distance[target] = distance[source] + 1;
         }
         // shortest path to target via source?
         if(distance[target] == distance[source] + 1)
         {
-          pathCount[target] += pathCount[source];
+          path_count[target] += path_count[source];
           parent[target].push_back(source);
         }
       }
@@ -49,21 +49,21 @@ auto brandes(const std::vector<int>& rowPtr, const std::vector<int>& colIdx)
     // backtrack to propagate the dependency scores back through the graph,
     // to calculate the BC value for each node.
     //! The time complexity is O(V) for each vertex i
-    while(!pathStack.empty())
+    while(!path_stack.empty())
     {
-      const auto curr = pathStack.top();
-      pathStack.pop();
+      const auto curr = path_stack.top();
+      path_stack.pop();
 
       const auto prev = parent[curr];
 
       for(const auto& prev : parent[curr])    // Iterate through all parents
       {
-        DepScore[prev] +=
-            (static_cast<float>(pathCount[prev]) / pathCount[curr]) * (1 + DepScore[curr]);
+        score[prev] +=
+            (static_cast<float>(path_count[prev]) / path_count[curr]) * (1 + score[curr]);
       }
       if(curr != i)    // if curr is not the source vertex
       {
-        betweenness[curr] += DepScore[curr];
+        betweenness[curr] += score[curr];
       }
     }
   }
@@ -72,11 +72,11 @@ auto brandes(const std::vector<int>& rowPtr, const std::vector<int>& colIdx)
 
 int main()
 {
-  std::vector<int> rowPtr = { 0, 1, 3, 6, 9, 11, 12 };
-  std::vector<int> colIdx = { 1, 0, 2, 3, 1, 2, 4, 2, 3, 4, 5, 4 };
+  std::vector<int> row_pointer = { 0, 1, 3, 6, 9, 11, 12 };
+  std::vector<int> column_index = { 1, 0, 2, 3, 1, 2, 4, 2, 3, 4, 5, 4 };
   // Compute betweenness centrality using Brandes's algorithm
   // unweighted graph for simplicity
-  auto betweenness = brandes(rowPtr, colIdx);
+  auto betweenness = Brandes(row_pointer, column_index);
   // Print betweenness centrality
   std::cout << "Betweenness centrality:" << std::endl;
   for(int i = 0; i < betweenness.size(); i++)
